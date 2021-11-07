@@ -1,8 +1,9 @@
 import fs from 'fs';
 import {Client, Collection, Intents} from 'discord.js'
 import dotenv from 'dotenv'
-import {Trends} from "./game/trends"
+import {Game} from "./game/game"
 import { setTimeout } from 'timers/promises'
+import {Trends} from "./game/trends";
 
 require('./deploy-commands');
 
@@ -18,7 +19,7 @@ for (const file of commandFiles) {
 }
 
 let playing = false;
-let game;
+let game = new Game();
 
 client.on('interactionCreate', async interaction => {
     if (interaction.isCommand()) {
@@ -35,11 +36,13 @@ client.on('interactionCreate', async interaction => {
         switch (command.data.name) {
             case 'playtrends':
                 const res = await setTimeout(command.timer, command.players);
-                game = await new Trends();
+                game = await new Game();
                 await joinGame(res);
+                playing = true;
+                runGame();
                 break;
             case 'answer':
-                answer(interaction.options.getString('answer'));
+                answer(interaction.options.getString('answer'), interaction.user.tag);
                 break;
         }
     }
@@ -48,12 +51,16 @@ client.on('interactionCreate', async interaction => {
 client.login(process.env.TOKEN);
 
 async function runGame() {
+    while(playing){
+        const roundScore = await setTimeout(5000, game.getRoundResult());
+        console.log(roundScore);
+    }
 }
 
 async function joinGame(players: string[]) {
     await game.joinGame(players);
 }
 
-function answer(val: string) {
-    game.answer(val);
+function answer(answer: string, player: string) {
+    game.answer(answer, player);
 }

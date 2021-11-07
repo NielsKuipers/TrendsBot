@@ -10,7 +10,7 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('playtrends')
         .setDescription('Starts a game of trends'),
-    timer: 15000,
+    timer: 5000,
     players: [],
     async execute(interaction: any) {
         const row = new MessageActionRow()

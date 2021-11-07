@@ -1,34 +1,16 @@
-export class Trends {
-    answer1: string;
-    answer2: string;
-    players: string[];
+export abstract class Trends {
+    private static gTrends = require('google-trends-api');
 
-    constructor() {
-        this.players = [];
-    }
+    public static async getDifference(answer1: string, answer2: string, subject: string): Promise<number[]>{
+        let date = new Date(Date.now());
+        date.setMonth(date.getMonth() - 1);
 
-    async playRound(): Promise<number> {
-        await this.timeout(5000);
-        return 1;
-    }
+        answer1 = subject +  ' ' + answer1;
+        answer2 = subject +  ' ' + answer2;
 
-    answer(answer: string): void {
-        this.answer1 = answer;
-    }
+        const result = await this.gTrends.interestOverTime({ keyword: [answer1, answer2], startTime: date});
+        const { default: {averages} } = JSON.parse(result);
 
-    getAnswer(): string {
-        return this.answer1;
-    }
-
-    joinGame(players: string[]): void {
-        this.players = players;
-    }
-
-    getPlayers(): string[] {
-        return this.players;
-    }
-
-    timeout(ms): Promise<any> {
-        return new Promise(resolve => setTimeout(resolve, ms));
+        return averages;
     }
 }
