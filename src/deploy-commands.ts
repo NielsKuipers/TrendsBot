@@ -1,14 +1,13 @@
 import fs from 'fs';
-import { SlashCommandBuilder } from "@discordjs/builders";
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-const token = <string>process.env.TOKEN;
-const clientID = <string>process.env.CLIENT_ID;
-const guildID = <string>process.env.GUILD_ID;
+const token = process.env.TOKEN;
+const clientID = process.env.CLIENT_ID;
+const guildID = process.env.GUILD_ID;
 const commands:any = [];
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.ts'));
 
