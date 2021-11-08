@@ -1,41 +1,61 @@
 import {Trends} from "./trends";
 
 export class Game {
-    answer1: string;
-    answer2: string;
-    players: string[];
+    private answer1: string = 'a';
+    private answer2: string = 'b';
+    private players: string[];
+
+    //TODO: change topics from from database :)
+    private halloween = {name: 'Halloween', words: ['pumpkin', 'candy', 'killer']};
+    private cars = {name: 'Cars', words: ['wheel', 'engine', 'door']};
+    private topics = [this.halloween, this.cars];
+    private readonly currentTopic: any;
+    private readonly words: string[];
+    private currentWord: string;
 
     constructor() {
         this.players = [];
-    }
-
-    async playRound(): Promise<number> {
-        await this.timeout(5000);
-        return 1;
+        this.currentTopic = this.topics[Math.floor(Math.random() * this.topics.length)];
+        this.words = this.currentTopic.words;
+        this.chooseWord();
     }
 
     answer(answer: string, player: string): void {
         const number: number = this.players.indexOf(player);
 
-        if(number === 0)
+        if (number === 0)
             this.answer1 = answer;
         else
             this.answer2 = answer;
     }
 
-    async getRoundResult(): Promise<number[]> {
-       return await Trends.getDifference(this.answer1, this.answer2, 'a');
+    async endRound(): Promise<any> {
+        this.chooseWord();
+        const score = await Trends.getDifference(this.answer1, this.answer2);
+        return {answers: [this.answer1, this.answer2], score: score};
+    }
+
+    private chooseWord(): void {
+        //get a random word from the current topic and remove it from the array to avoid duplicates
+        let randInt = Math.floor(Math.random() * this.words.length);
+
+        this.currentWord = this.words[randInt];
+        this.words.splice(randInt, 1);
+    }
+
+    getCurrentWord(): string {
+        return this.currentWord;
     }
 
     joinGame(players: string[]): void {
         this.players = players;
     }
 
-    getPlayers(): string[] {
-        return this.players;
+    getTopic(): any {
+        return this.currentTopic;
     }
 
-    timeout(ms): Promise<any> {
-        return new Promise(resolve => setTimeout(resolve, ms));
+    getPlayers(): string[] {
+        return this.players;
     }
 }
