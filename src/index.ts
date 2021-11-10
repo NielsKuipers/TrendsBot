@@ -112,7 +112,10 @@ function showResults(msg: Message, results: any, round: number) {
         .addFields(
             {name: 'Team 1 answered: ', value: answer1, inline: true},
             {name: '\u200b', value: '\u200b', inline: true},
-            {name: 'Team 2 answered: ', value: answer2, inline: true}
+            {name: 'They scored: ', value: results.score[0] + ' points!', inline: true},
+            {name: 'Team 2 answered: ', value: answer2, inline: true},
+            {name: '\u200b', value: '\u200b', inline: true},
+            {name: 'They scored: ', value: results.score[1] + ' points!', inline: true}
         )
 
     msg.edit({embeds: [embed]});
