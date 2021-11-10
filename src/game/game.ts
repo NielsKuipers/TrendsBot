@@ -1,8 +1,8 @@
 import {Trends} from "./trends";
 
 export class Game {
-    private answer1: string = 'a';
-    private answer2: string = 'b';
+    private answer1: string = '';
+    private answer2: string = '';
     private players: string[];
 
     //TODO: change topics from from database :)
@@ -32,7 +32,10 @@ export class Game {
     async endRound(): Promise<any> {
         this.chooseWord();
         const score = await Trends.getDifference(this.answer1, this.answer2);
-        return {answers: [this.answer1, this.answer2], score: score};
+        const result = {answers: [this.answer1.slice(), this.answer2.slice()], score: score};
+
+        this.answer1 = this.answer2 = '';
+        return result;
     }
 
     private chooseWord(): void {

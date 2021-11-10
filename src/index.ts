@@ -17,7 +17,6 @@ for (const file of commandFiles) {
     client.commands.set(command.data.name, command);
 }
 
-
 let playing = false;
 let game = new Game();
 
@@ -44,12 +43,14 @@ client.on('interactionCreate', async interaction => {
             case 'answer':
                 const answer: string = interaction.options.getString('answer');
 
-                if (answer.includes(game.getCurrentWord())){
+                if (answer.includes(game.getCurrentWord())) {
                     confirmAnswer(interaction.options.getString('answer'), interaction.user.tag);
-                    interaction.reply({ content: 'Answer received!', ephemeral: true})
-                }
-                else
-                    interaction.reply({ content: 'Your answer must include the word ' + game.getCurrentWord(), ephemeral: true})
+                    interaction.reply({content: 'Answer received!', ephemeral: true})
+                } else
+                    interaction.reply({
+                        content: 'Your answer must include the word ' + game.getCurrentWord(),
+                        ephemeral: true
+                    })
                 break;
         }
     }
@@ -95,6 +96,7 @@ function createRoundEmbed(round: number, word: string, topic: string): MessageEm
         .setDescription('Use the /answer command to submit your answer')
         .addFields(
             {name: 'Current topic: ', value: topic, inline: true},
+            {name: '\u200b', value: '\u200b', inline: true},
             {name: 'Pair a term with: ', value: word, inline: true}
         )
 }
@@ -107,6 +109,7 @@ function showResults(msg: Message, results: any, round: number) {
         .setDescription('')
         .addFields(
             {name: 'Player 1 answered: ', value: results.answers[0], inline: true},
+            {name: '\u200b', value: '\u200b', inline: true},
             {name: 'Player 2 answered: ', value: results.answers[1], inline: true}
         )
 
