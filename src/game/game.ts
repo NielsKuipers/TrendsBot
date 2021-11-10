@@ -3,7 +3,7 @@ import {Trends} from "./trends";
 export class Game {
     private answer1: string = '';
     private answer2: string = '';
-    private players: string[];
+    private players: string [][];
 
     //TODO: change topics from from database :)
     private halloween = {name: 'Halloween', words: ['pumpkin', 'candy', 'killer']};
@@ -14,14 +14,14 @@ export class Game {
     private currentWord: string;
 
     constructor() {
-        this.players = [];
+        this.players = [[], []];
         this.currentTopic = this.topics[Math.floor(Math.random() * this.topics.length)];
         this.words = this.currentTopic.words;
         this.chooseWord();
     }
 
     answer(answer: string, player: string): void {
-        const number: number = this.players.indexOf(player);
+        const number: number = this.players.findIndex(i => i.includes(player));
 
         if (number === 0)
             this.answer1 = answer;
@@ -50,15 +50,11 @@ export class Game {
         return this.currentWord;
     }
 
-    joinGame(players: string[]): void {
+    joinGame(players: string[][]): void {
         this.players = players;
     }
 
     getTopic(): any {
         return this.currentTopic;
-    }
-
-    getPlayers(): string[] {
-        return this.players;
     }
 }

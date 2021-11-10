@@ -81,7 +81,7 @@ async function runGame(channel: TextChannel) {
     }
 }
 
-async function joinGame(players: string[]) {
+async function joinGame(players: string[][]) {
     await game.joinGame(players);
 }
 
@@ -103,14 +103,16 @@ function createRoundEmbed(round: number, word: string, topic: string): MessageEm
 
 function showResults(msg: Message, results: any, round: number) {
     const embed = msg.embeds[0];
+    const answer1 = !results.answers[0] || results.answers[0].length === 0 ? 'Nothing' : results.answers[0];
+    const answer2 = !results.answers[1] || results.answers[1].length === 1 ? 'Nothing' : results.answers[1];
 
     embed
         .setTitle('Round ' + round + ' results:')
         .setDescription('')
         .addFields(
-            {name: 'Player 1 answered: ', value: results.answers[0], inline: true},
+            {name: 'Team 1 answered: ', value: answer1, inline: true},
             {name: '\u200b', value: '\u200b', inline: true},
-            {name: 'Player 2 answered: ', value: results.answers[1], inline: true}
+            {name: 'Team 2 answered: ', value: answer2, inline: true}
         )
 
     msg.edit({embeds: [embed]});
