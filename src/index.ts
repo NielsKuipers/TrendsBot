@@ -1,13 +1,23 @@
 import fs from 'fs';
-import {Client, Collection, Intents, Message, MessageEmbed, TextChannel} from 'discord.js'
-import dotenv from 'dotenv'
-import {Game} from "./game/game"
+import {
+    Client,
+    Collection,
+    Intents,
+    Message,
+    MessageEmbed,
+    TextChannel
+} from 'discord.js'
+import {Game} from './game/game'
 import {setTimeout} from 'timers/promises'
+import {DBmanager} from "../database/dbmanager";
 
 require('./deploy-commands');
 
-dotenv.config();
 const client: any = new Client({intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES]});
+const dbManager: DBmanager = new DBmanager();
+
+client.on('ready', async () => {
+})
 
 client.commands = new Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.ts'));
@@ -17,6 +27,7 @@ for (const file of commandFiles) {
     client.commands.set(command.data.name, command);
 }
 
+const answerTime = 10000;
 let playing = false;
 let game = new Game();
 
@@ -69,15 +80,27 @@ async function runGame(channel: TextChannel) {
         //create embed with current round and chosen word
         let msg = createRoundEmbed(round, word, topic.name);
         let curRound = await channel.send({embeds: [msg]})
+        // setCountdown(msg, curRound, answerTime, 'Round ' + round + ' ends in ');
 
         await setTimeout(10000);
         const results = await game.endRound();
+        console.log(results);
         showResults(curRound, results, round);
         await setTimeout(5000);
 
         round++;
         if (round > totalRounds)
+        {
+            // const team = game.getPlayers();
+            // const teamWon = game.
+            //
+            // for (let i = 0; i <  team.length, i++;)
+            //     for (let player of team[i]){
+            //
+            //     }
+
             break;
+        }
     }
 }
 
@@ -89,11 +112,24 @@ function confirmAnswer(answer: string, player: string) {
     game.answer(answer, player);
 }
 
+function setCountdown(embed: MessageEmbed, msg: Message, time: number, text: string) {
+    let intervalTimer = time / 1000;
+
+    let interval = setInterval(async () => {
+        embed.setTitle(text + ' ' + (intervalTimer - 1) + ' seconds');
+        intervalTimer--;
+        await msg.edit({embeds: [embed]});
+
+        if (intervalTimer === 0)
+            clearInterval(interval);
+    }, 1000);
+}
+
 function createRoundEmbed(round: number, word: string, topic: string): MessageEmbed {
     return new MessageEmbed()
         .setColor('#0099ff')
         .setTitle('Round ' + round)
-        .setDescription('Use the /answer command to submit your answer')
+        .setDescription('You have ')
         .addFields(
             {name: 'Current topic: ', value: topic, inline: true},
             {name: '\u200b', value: '\u200b', inline: true},

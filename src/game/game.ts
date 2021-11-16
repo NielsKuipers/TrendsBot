@@ -1,9 +1,8 @@
 import {Trends} from "./trends";
+import {Team} from "./team";
 
 export class Game {
-    private answer1: string = '';
-    private answer2: string = '';
-    private players: string [][];
+    private teams: Team[] = [new Team(), new Team()];
 
     //TODO: change topics from from database :)
     private halloween = {name: 'Halloween', words: ['pumpkin', 'candy', 'killer']};
@@ -14,27 +13,30 @@ export class Game {
     private currentWord: string;
 
     constructor() {
-        this.players = [[], []];
         this.currentTopic = this.topics[Math.floor(Math.random() * this.topics.length)];
         this.words = this.currentTopic.words;
         this.chooseWord();
     }
 
     answer(answer: string, player: string): void {
-        const number: number = this.players.findIndex(i => i.includes(player));
-
-        if (number === 0)
-            this.answer1 = answer;
-        else
-            this.answer2 = answer;
+        const teamNumber: number = this.teams.findIndex(i => i.hasPlayer(player));
+        this.teams[teamNumber].setAnswer(answer);
     }
 
     async endRound(): Promise<any> {
-        this.chooseWord();
-        const score = await Trends.getDifference(this.answer1, this.answer2);
-        const result = {answers: [this.answer1.slice(), this.answer2.slice()], score: score};
+        let answers: string[] = [];
+        for (let team of this.teams)
+            answers.push(team.getCurrentAnswer());
 
-        this.answer1 = this.answer2 = '';
+        this.chooseWord();
+        const score = await Trends.getDifference(answers, this.teams.length);
+        const result = {answers: answers, score: score};
+
+        for (let i = 0; i < this.teams.length; i++){
+            this.teams[i].addScore(score[i]);
+            this.teams[i].setAnswer('');
+        }
+
         return result;
     }
 
@@ -51,10 +53,15 @@ export class Game {
     }
 
     joinGame(players: string[][]): void {
-        this.players = players;
+        for (let i = 0; i < players.length; i++)
+            this.teams[i].addPlayers(players[i]);
     }
 
     getTopic(): any {
         return this.currentTopic;
+    }
+
+    getPlayers(): Team[] {
+        return this.teams;
     }
 }
