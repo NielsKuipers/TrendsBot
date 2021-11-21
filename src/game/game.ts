@@ -2,7 +2,7 @@ import {Trends} from "./trends";
 import {Team} from "./team";
 
 export class Game {
-    private teams: Team[] = [new Team(), new Team()];
+    private teams: Team[] = [];
 
     //TODO: change topics from from database :)
     private halloween = {name: 'Halloween', words: ['pumpkin', 'candy', 'killer']};
@@ -29,7 +29,7 @@ export class Game {
             answers.push(team.getCurrentAnswer());
 
         this.chooseWord();
-        const score = await Trends.getDifference(answers, this.teams.length);
+        const score = await Trends.getDifference([...answers], this.teams.length);
         const result = {answers: answers, score: score};
 
         for (let i = 0; i < this.teams.length; i++){
@@ -52,9 +52,8 @@ export class Game {
         return this.currentWord;
     }
 
-    joinGame(players: string[][]): void {
-        for (let i = 0; i < players.length; i++)
-            this.teams[i].addPlayers(players[i]);
+    joinGame(players: Team[]): void {
+        this.teams = players;
     }
 
     getTopic(): any {

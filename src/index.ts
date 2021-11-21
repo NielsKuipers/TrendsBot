@@ -10,14 +10,12 @@ import {
 import {Game} from './game/game'
 import {setTimeout} from 'timers/promises'
 import {DBmanager} from "../database/dbmanager";
+import {Team} from "./game/team";
 
 require('./deploy-commands');
 
 const client: any = new Client({intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES]});
 const dbManager: DBmanager = new DBmanager();
-
-client.on('ready', async () => {
-})
 
 client.commands = new Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.ts'));
@@ -84,13 +82,11 @@ async function runGame(channel: TextChannel) {
 
         await setTimeout(10000);
         const results = await game.endRound();
-        console.log(results);
         showResults(curRound, results, round);
         await setTimeout(5000);
 
         round++;
-        if (round > totalRounds)
-        {
+        if (round > totalRounds) {
             // const team = game.getPlayers();
             // const teamWon = game.
             //
@@ -104,7 +100,7 @@ async function runGame(channel: TextChannel) {
     }
 }
 
-async function joinGame(players: string[][]) {
+async function joinGame(players: Team[]) {
     await game.joinGame(players);
 }
 
@@ -139,20 +135,21 @@ function createRoundEmbed(round: number, word: string, topic: string): MessageEm
 
 function showResults(msg: Message, results: any, round: number) {
     const embed = msg.embeds[0];
-    const answer1 = !results.answers[0] || results.answers[0].length === 0 ? 'Nothing' : results.answers[0];
-    const answer2 = !results.answers[1] || results.answers[1].length === 1 ? 'Nothing' : results.answers[1];
+    let fields = [];
+    for (let i = 0; i < results.answers.length; i++) {
+        if (!results.answers[i] || results.answers[i].length === 0) results.answers[i] = 'Nothing';
+
+        fields.push(
+            {name: 'Team ' + (i + 1) + ' answered: ', value: results.answers[i], inline: true},
+            {name: '\u200b', value: '\u200b', inline: true},
+            {name: 'They scored: ', value: results.score[i] + ' points!', inline: true},
+        );
+    }
 
     embed
         .setTitle('Round ' + round + ' results:')
         .setDescription('')
-        .addFields(
-            {name: 'Team 1 answered: ', value: answer1, inline: true},
-            {name: '\u200b', value: '\u200b', inline: true},
-            {name: 'They scored: ', value: results.score[0] + ' points!', inline: true},
-            {name: 'Team 2 answered: ', value: answer2, inline: true},
-            {name: '\u200b', value: '\u200b', inline: true},
-            {name: 'They scored: ', value: results.score[1] + ' points!', inline: true}
-        )
+        .setFields(fields);
 
     msg.edit({embeds: [embed]});
 }

@@ -1,19 +1,36 @@
 import {SlashCommandBuilder} from "@discordjs/builders";
 import {
-    ButtonInteraction,
+    Interaction,
     MessageActionRow,
     MessageButton,
-    MessageEmbed
+    MessageEmbed, MessageSelectMenu
 } from "discord.js";
+import {Team} from '../src/game/team';
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('playtrends')
-        .setDescription('Starts a game of trends'),
+        .setDescription('Starts a game of trends')
+        .addIntegerOption(o =>
+            o.setName('teams')
+                .setDescription('The amount of teams to play with')
+                .setRequired(true)
+                .addChoice('2', 2)
+                .addChoice('3', 3)
+                .addChoice('4', 4)),
     timer: 10000,
-    players: [[], []],
+    players: [],
     async execute(interaction: any) {
-        const row = new MessageActionRow()
+        //add the selected amount of teams
+        for (let i = 0; i < interaction.options.getInteger('teams'); i++)
+            this.players.push(new Team());
+
+        const teamSelect = new MessageSelectMenu()
+            .setCustomId('teamSelect')
+            .setPlaceholder('Select team')
+            .addOptions([{label: 'yo', value: 'yo'}]);
+
+        const buttonRow = new MessageActionRow()
             .addComponents(
                 new MessageButton()
                     .setCustomId('join')
@@ -25,15 +42,24 @@ module.exports = {
                     .setStyle('DANGER')
             );
 
+        const selectRow = new MessageActionRow();
+
         const embed = new MessageEmbed()
             .setColor('#0099ff')
             .setTitle('Game starting!')
             .setDescription('Press Join to join in!')
-            .addFields({name: 'Team 1', value: '\u200b', inline: true}, {name: 'Team 2', value: '\u200b', inline: true})
+
+        let options = [];
+        for (let i = 0; i < interaction.options.getInteger('teams'); i++) {
+            options.push({label: 'Team ' + (i + 1), value: `${i}`});
+            embed.addField('Team ' + (i + 1), '\u200b', true);
+        }
+        teamSelect.setOptions(options);
+        selectRow.addComponents(teamSelect);
 
         await interaction.reply({
             embeds: [embed],
-            components: [row]
+            components: [buttonRow]
         });
 
         const collector = interaction.channel.createMessageComponentCollector({time: this.timer});
@@ -50,28 +76,35 @@ module.exports = {
         }, 1000);
 
         //whenever you press the button add/remove a player to/from the embed
-        collector.on('collect', async (i: ButtonInteraction) => {
+        collector.on('collect', async (i: Interaction) => {
             const user = i.user.tag;
 
-            if (i.customId === 'join') {
-                //check which team has the least members and add to that one
-                const team = (this.players[0].length > this.players[1].length) ? 1 : 0;
+            if (i.isButton()) {
+                if (i.customId === 'join')
+                    await i.reply({content: 'Select a team to join', components: [selectRow], ephemeral: true})
+                else if (i.customId === 'leave') {
+                    const team = this.players.findIndex(t => t.hasPlayer(user));
 
-                embed.fields[team].value += user + '\n';
-                await i.update({embeds: [embed], components: [row]});
-                this.players[team].push(user);
-            } else {
-                const team = this.players.findIndex(t => t.includes(user));
+                    if (team !== -1) {
+                        this.players[team].removePlayer(user);
+                        const field = embed.fields[team].value;
+                        embed.fields[team].value = field.replace(user + '\n', '');
 
-                if(team !== -1) {
-                    this.players[team] = this.players[team].filter(p => p !== user);
-                    const field = embed.fields[team].value;
-                    embed.fields[team].value = field.replace(user + '\n', '');
-
-                    await i.update({embeds: [embed], components: [row]});
-                } else {
-                    await i.reply({content: 'You are not participating in this game', ephemeral: true});
+                        await i.update({embeds: [embed], components: [buttonRow]});
+                    } else {
+                        await i.reply({content: 'You are not participating in this game', ephemeral: true});
+                    }
                 }
+            }
+
+            if (i.isSelectMenu() && i.customId === 'teamSelect') {
+                const selectedTeam = i.values[0];
+
+                embed.fields[selectedTeam].value += user + '\n';
+                this.players[selectedTeam].addPlayer(user);
+                await i.update({content: 'Team joined!', components: []});
+
+                return;
             }
         });
     }

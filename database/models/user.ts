@@ -1,7 +1,7 @@
 import {Model, Schema, model} from 'mongoose';
 
 export interface IUser {
-    tag: string;
+    _id: string;
     gamesPlayed: number;
     gamesWon: number;
     gamesLost: number;
@@ -13,7 +13,7 @@ interface IUserModel extends Model<IUser> {
 
 const schema = new Schema<IUser>(
     {
-        tag: {type: String, required: true},
+        _id: {type: String, required: true},
         gamesPlayed: {type: Number, required: true},
         gamesWon: {type: Number, required: true},
         gamesLost: {type: Number, required: true},

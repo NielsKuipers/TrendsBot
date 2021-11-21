@@ -1,5 +1,5 @@
 export class Team {
-    private players: string[];
+    private players: string[] = [];
     private totalScore: number;
     private answered: string[];
     private currentAnswer: string = '';
@@ -8,7 +8,15 @@ export class Team {
         this.players = players;
     }
 
-    addScore(score: number){
+    addPlayer(player: string) {
+        this.players.push(player);
+    }
+
+    removePlayer(player: string) {
+        this.players.filter(p => p !== player);
+    }
+
+    addScore(score: number) {
         this.totalScore += score;
     }
 
@@ -17,13 +25,12 @@ export class Team {
     }
 
     setAnswer(answer: string) {
-       this.currentAnswer = answer;
+        this.currentAnswer = answer;
     }
 
     getCurrentAnswer(): string {
         return this.currentAnswer;
     }
-
 
     getAnswered() {
         return this.answered;
