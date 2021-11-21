@@ -78,9 +78,9 @@ async function runGame(channel: TextChannel) {
         //create embed with current round and chosen word
         let msg = createRoundEmbed(round, word, topic.name);
         let curRound = await channel.send({embeds: [msg]})
-        // setCountdown(msg, curRound, answerTime, 'Round ' + round + ' ends in ');
+        setCountdown(msg, curRound, answerTime, 'Round ' + round + ' ends in ');
 
-        await setTimeout(10000);
+        await setTimeout(11000);
         const results = await game.endRound();
         showResults(curRound, results, round);
         await setTimeout(5000);
@@ -112,11 +112,11 @@ function setCountdown(embed: MessageEmbed, msg: Message, time: number, text: str
     let intervalTimer = time / 1000;
 
     let interval = setInterval(async () => {
-        embed.setTitle(text + ' ' + (intervalTimer - 1) + ' seconds');
+        embed.setTitle(text + ' ' + (intervalTimer) + ' seconds');
         intervalTimer--;
         await msg.edit({embeds: [embed]});
 
-        if (intervalTimer === 0)
+        if (intervalTimer <= 0)
             clearInterval(interval);
     }, 1000);
 }

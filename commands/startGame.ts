@@ -28,7 +28,7 @@ module.exports = {
         const teamSelect = new MessageSelectMenu()
             .setCustomId('teamSelect')
             .setPlaceholder('Select team')
-            .addOptions([{label: 'yo', value: 'yo'}]);
+            .addOptions([{label: '\u200b', value: '\u200b'}]);
 
         const buttonRow = new MessageActionRow()
             .addComponents(
