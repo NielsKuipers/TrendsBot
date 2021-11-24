@@ -1,11 +1,16 @@
 export class Team {
     private players: string[] = [];
-    private totalScore: number;
+    private totalScore: number = 0;
     private answered: string[];
     private currentAnswer: string = '';
+    private winStatus: boolean = false;
 
     addPlayers(players: string[]) {
         this.players = players;
+    }
+
+    getPlayers(): string[] {
+        return this.players;
     }
 
     addPlayer(player: string) {
@@ -38,5 +43,13 @@ export class Team {
 
     hasPlayer(player: string): boolean {
         return this.players.includes(player);
+    }
+
+    setWon() {
+        this.winStatus = true;
+    }
+
+    getWinStatus() {
+        return this.winStatus;
     }
 }

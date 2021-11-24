@@ -53,7 +53,7 @@ client.on('interactionCreate', async interaction => {
                 const answer: string = interaction.options.getString('answer');
 
                 if (answer.includes(game.getCurrentWord())) {
-                    confirmAnswer(interaction.options.getString('answer'), interaction.user.tag);
+                    confirmAnswer(interaction.options.getString('answer'), interaction.user.id);
                     interaction.reply({content: 'Answer received!', ephemeral: true})
                 } else
                     interaction.reply({
@@ -87,15 +87,19 @@ async function runGame(channel: TextChannel) {
 
         round++;
         if (round > totalRounds) {
-            // const team = game.getPlayers();
-            // const teamWon = game.
-            //
-            // for (let i = 0; i <  team.length, i++;)
-            //     for (let player of team[i]){
-            //
-            //     }
+            const teams = game.getTeams();
+            const highScore = game.getHighestScore();
 
-            break;
+
+            for (let i = 0; i < teams.length; i++) {
+                const teamScore = teams[i].getTotalScore();
+                const won = highScore === teamScore;
+
+                for (let player of teams[i].getPlayers())
+                    await dbManager.handleUser(player, won, teamScore);
+            }
+
+            playing = false;
         }
     }
 }
@@ -112,7 +116,7 @@ function setCountdown(embed: MessageEmbed, msg: Message, time: number, text: str
     let intervalTimer = time / 1000;
 
     let interval = setInterval(async () => {
-        embed.setTitle(text + ' ' + (intervalTimer) + ' seconds');
+        embed.setTitle(text + (intervalTimer) + ' seconds');
         intervalTimer--;
         await msg.edit({embeds: [embed]});
 

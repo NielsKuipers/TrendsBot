@@ -32,7 +32,7 @@ export class Game {
         const score = await Trends.getDifference([...answers], this.teams.length);
         const result = {answers: answers, score: score};
 
-        for (let i = 0; i < this.teams.length; i++){
+        for (let i = 0; i < this.teams.length; i++) {
             this.teams[i].addScore(score[i]);
             this.teams[i].setAnswer('');
         }
@@ -60,7 +60,18 @@ export class Game {
         return this.currentTopic;
     }
 
-    getPlayers(): Team[] {
+    getTeams(): Team[] {
         return this.teams;
+    }
+
+    getHighestScore(): number {
+        let result: number = 0;
+
+        for (let team of this.teams) {
+            const score = team.getTotalScore();
+            if (score > result) result = score;
+        }
+
+        return result;
     }
 }

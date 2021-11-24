@@ -21,7 +21,6 @@ export abstract class Trends {
             return scores;
         }
 
-
         let date = new Date(Date.now());
         date.setMonth(date.getMonth() - 1);
 

@@ -78,15 +78,16 @@ module.exports = {
         //whenever you press the button add/remove a player to/from the embed
         collector.on('collect', async (i: Interaction) => {
             const user = i.user.tag;
+            const userID = i.user.id;
 
             if (i.isButton()) {
                 if (i.customId === 'join')
                     await i.reply({content: 'Select a team to join', components: [selectRow], ephemeral: true})
                 else if (i.customId === 'leave') {
-                    const team = this.players.findIndex(t => t.hasPlayer(user));
+                    const team = this.players.findIndex(t => t.hasPlayer(userID));
 
                     if (team !== -1) {
-                        this.players[team].removePlayer(user);
+                        this.players[team].removePlayer(userID);
                         const field = embed.fields[team].value;
                         embed.fields[team].value = field.replace(user + '\n', '');
 
@@ -95,13 +96,11 @@ module.exports = {
                         await i.reply({content: 'You are not participating in this game', ephemeral: true});
                     }
                 }
-            }
-
-            if (i.isSelectMenu() && i.customId === 'teamSelect') {
+            } else if (i.isSelectMenu() && i.customId === 'teamSelect') {
                 const selectedTeam = i.values[0];
 
                 embed.fields[selectedTeam].value += user + '\n';
-                this.players[selectedTeam].addPlayer(user);
+                this.players[selectedTeam].addPlayer(userID);
                 await i.update({content: 'Team joined!', components: []});
 
                 return;
