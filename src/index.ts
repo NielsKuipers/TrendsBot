@@ -11,6 +11,7 @@ import {Game} from './game/game'
 import {setTimeout} from 'timers/promises'
 import {DBmanager} from "../database/dbmanager";
 import {Team} from "./game/team";
+import {ITopic} from "../database/models/topic";
 
 require('./deploy-commands');
 
@@ -25,9 +26,9 @@ for (const file of commandFiles) {
     client.commands.set(command.data.name, command);
 }
 
-const answerTime = 10000;
+const answerTime = 5000;
 let playing = false;
-let game = new Game();
+let game: Game;
 
 client.on('interactionCreate', async interaction => {
     if (interaction.isCommand()) {
@@ -44,15 +45,16 @@ client.on('interactionCreate', async interaction => {
         switch (command.data.name) {
             case 'playtrends':
                 const res = await setTimeout(command.timer, command.players);
-                game = await new Game();
+                game = new Game();
+                await game.loadTopics();
                 await joinGame(res);
                 playing = true;
                 runGame(interaction.channel);
                 break;
             case 'answer':
-                const answer: string = interaction.options.getString('answer');
+                const answer: string = interaction.options.getString('answer').toLowerCase();
 
-                if (answer.includes(game.getCurrentWord())) {
+                if (answer.includes(game.getCurrentWord().toLowerCase())) {
                     confirmAnswer(interaction.options.getString('answer'), interaction.user.id);
                     interaction.reply({content: 'Answer received!', ephemeral: true})
                 } else
@@ -68,9 +70,9 @@ client.on('interactionCreate', async interaction => {
 client.login(process.env.TOKEN);
 
 async function runGame(channel: TextChannel) {
-    const topic = game.getTopic();
+    const topic: ITopic = await game.getTopic();
     let round = 1;
-    const totalRounds = topic.words.length + 1;
+    const totalRounds = topic.terms.length + 1;
 
     while (playing) {
         const word = game.getCurrentWord();
@@ -80,7 +82,7 @@ async function runGame(channel: TextChannel) {
         let curRound = await channel.send({embeds: [msg]})
         setCountdown(msg, curRound, answerTime, 'Round ' + round + ' ends in ');
 
-        await setTimeout(11000);
+        await setTimeout(answerTime + 1000);
         const results = await game.endRound();
         showResults(curRound, results, round);
         await setTimeout(5000);

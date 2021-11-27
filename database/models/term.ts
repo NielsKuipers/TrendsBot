@@ -11,7 +11,7 @@ const schema = new Schema<ITerm>(
     {
         term: {type: String, required: true},
     },
-    {discriminatorKey: 'term'}
+    {discriminatorKey: 'Term'}
 );
 
 const Term: ITermModel = model<ITerm, ITermModel>('Term', schema);

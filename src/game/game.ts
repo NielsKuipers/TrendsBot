@@ -1,21 +1,18 @@
 import {Trends} from "./trends";
 import {Team} from "./team";
+import Topic, {ITopic} from "../../database/models/topic";
+import {ITerm} from "../../database/models/term";
+
+require('../../database/models/term');
 
 export class Game {
     private teams: Team[] = [];
-
-    //TODO: change topics from from database :)
-    private halloween = {name: 'Halloween', words: ['pumpkin', 'candy', 'killer']};
-    private cars = {name: 'Cars', words: ['wheel', 'engine', 'door']};
-    private topics = [this.halloween, this.cars];
-    private readonly currentTopic: any;
-    private readonly words: string[];
+    private topics: ITopic[];
+    private currentTopic: ITopic;
+    private words: ITerm[];
     private currentWord: string;
 
     constructor() {
-        this.currentTopic = this.topics[Math.floor(Math.random() * this.topics.length)];
-        this.words = this.currentTopic.words;
-        this.chooseWord();
     }
 
     answer(answer: string, player: string): void {
@@ -28,7 +25,9 @@ export class Game {
         for (let team of this.teams)
             answers.push(team.getCurrentAnswer());
 
-        this.chooseWord();
+        if (!this.words || this.words.length !== 0)
+            this.chooseWord();
+
         const score = await Trends.getDifference([...answers], this.teams.length);
         const result = {answers: answers, score: score};
 
@@ -44,7 +43,7 @@ export class Game {
         //get a random word from the current topic and remove it from the array to avoid duplicates
         let randInt = Math.floor(Math.random() * this.words.length);
 
-        this.currentWord = this.words[randInt];
+        this.currentWord = this.words[randInt].term;
         this.words.splice(randInt, 1);
     }
 
@@ -56,7 +55,7 @@ export class Game {
         this.teams = players;
     }
 
-    getTopic(): any {
+    getTopic(): ITopic {
         return this.currentTopic;
     }
 
@@ -73,5 +72,12 @@ export class Game {
         }
 
         return result;
+    }
+
+    async loadTopics() {
+        this.topics = await Topic.find().populate('terms');
+        this.currentTopic = await this.topics[Math.floor(Math.random() * this.topics.length)];
+        this.words = this.currentTopic.terms;
+        this.chooseWord();
     }
 }
