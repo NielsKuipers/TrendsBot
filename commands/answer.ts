@@ -5,6 +5,6 @@ module.exports = {
         .setName('answer')
         .setDescription('Submit an answer')
         .addStringOption(option => option.setName('answer').setDescription('Enter your answer!').setRequired(true)),
-    async execute(interaction: any) {
+    async execute() {
     }
 }

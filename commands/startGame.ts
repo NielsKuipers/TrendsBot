@@ -18,7 +18,7 @@ module.exports = {
                 .addChoice('2', 2)
                 .addChoice('3', 3)
                 .addChoice('4', 4)),
-    timer: 10000,
+    timer: 5000,
     players: [],
     async execute(interaction: any) {
         //add the selected amount of teams
