@@ -74,6 +74,10 @@ export class Game {
         return result;
     }
 
+    getTotalrounds(): number {
+        return this.currentTopic.terms.length + 1;
+    }
+
     async loadTopics() {
         this.topics = await Topic.find().populate('terms');
         this.currentTopic = await this.topics[Math.floor(Math.random() * this.topics.length)];
