@@ -18,9 +18,12 @@ module.exports = {
                 .addChoice('2', 2)
                 .addChoice('3', 3)
                 .addChoice('4', 4)),
-    timer: 5000,
+    timer: 10000,
     players: [],
     async execute(interaction: any) {
+        //clear player array before adding players
+        this.players.length = 0;
+
         //add the selected amount of teams
         for (let i = 0; i < interaction.options.getInteger('teams'); i++)
             this.players.push(new Team());

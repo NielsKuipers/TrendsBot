@@ -6,13 +6,14 @@ import {ITerm} from "../../database/models/term";
 require('../../database/models/term');
 
 export class Game {
-    private teams: Team[] = [];
+    private teams: Team[];
     private topics: ITopic[];
     private currentTopic: ITopic;
     private words: ITerm[];
     private currentWord: string;
 
     constructor() {
+        this.teams = [];
     }
 
     answer(answer: string, player: string): void {

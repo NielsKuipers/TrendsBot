@@ -1,17 +1,12 @@
 import fs from 'fs';
-import {
-    Client,
-    Collection,
-    Intents,
-    Message,
-    MessageEmbed,
-    TextChannel
-} from 'discord.js'
+import {Client, Collection, Intents, TextChannel} from 'discord.js'
 import {Game} from './game/game'
 import {setTimeout} from 'timers/promises'
 import {DBmanager} from "../database/dbmanager";
 import {Team} from "./game/team";
 import {ITopic} from "../database/models/topic";
+import {Timer} from "./ui/timer";
+import {Messages} from "./ui/messages";
 
 require('./deploy-commands');
 
@@ -26,8 +21,8 @@ for (const file of commandFiles) {
     client.commands.set(command.data.name, command);
 }
 
-const answerTime = 20000;
-const breakTime = 10000;
+const answerTime = 3000;
+const breakTime = 3000;
 let playing = false;
 let game: Game;
 
@@ -85,19 +80,19 @@ async function runGame(channel: TextChannel) {
         const word = game.getCurrentWord();
 
         //create embed with current round and chosen word
-        let msg = createRoundEmbed(round, word, topic.name);
+        let msg = Messages.createRoundEmbed(round, word, topic.name);
         let curRound = await channel.send({embeds: [msg]})
-        setCountdown(msg, curRound, answerTime, 'Round ' + round + ' ends in ');
+        Timer.setCountdown(msg, curRound, answerTime, 'Round ' + round + ' ends in ');
         await setTimeout(answerTime + 1000);
 
         //show round results
         const results = await game.endRound();
-        showResults(curRound, results, round);
+        Messages.showResults(curRound, results, round);
         await setTimeout(5000);
 
         round++;
         if (round > totalRounds) {
-            let finalResults = await createResultEmbed(round);
+            let finalResults = await Messages.createResultEmbed(round, game.getTeams(), true);
             await channel.send({embeds: [finalResults]});
 
             const teams = game.getTeams();
@@ -114,12 +109,16 @@ async function runGame(channel: TextChannel) {
             playing = false;
         } else {
             //show total game results and countdown for next round
-            let breakMsg = await createResultEmbed(round);
+            let breakMsg = await Messages.createResultEmbed(round, game.getTeams());
             let curRoundResults = await channel.send({embeds: [breakMsg]})
-            setCountdown(breakMsg, curRoundResults, 10000, 'Round ' + (round + 1) + ' starts in ');
+            Timer.setCountdown(breakMsg, curRoundResults, breakTime, 'Round ' + round + ' starts in ');
             await setTimeout(breakTime + 1000);
         }
     }
+}
+
+async function setTeamName() {
+
 }
 
 async function joinGame(players: Team[]) {
@@ -128,78 +127,4 @@ async function joinGame(players: Team[]) {
 
 function confirmAnswer(answer: string, player: string) {
     game.answer(answer, player);
-}
-
-function setCountdown(embed: MessageEmbed, msg: Message, time: number, text: string) {
-    let intervalTimer = time / 1000;
-
-    let interval = setInterval(async () => {
-        embed.setTitle(text + (intervalTimer) + ' seconds');
-        intervalTimer--;
-        await msg.edit({embeds: [embed]});
-
-        if (intervalTimer <= 0)
-            clearInterval(interval);
-    }, 1000);
-}
-
-function createRoundEmbed(round: number, word: string, topic: string): MessageEmbed {
-    return new MessageEmbed()
-        .setColor('#0099ff')
-        .setTitle('Round ' + round)
-        .setDescription('Use /answer to submit an answer!')
-        .addFields(
-            {name: 'Current topic: ', value: topic, inline: true},
-            {name: '\u200b', value: '\u200b', inline: true},
-            {name: 'Pair a term with: ', value: word, inline: true}
-        )
-}
-
-function createResultEmbed(round: number) {
-    let teams = [...game.getTeams()];
-    let fields = [];
-    let title = 'Round ' + (round + 1) + ' starts in: 10';
-    let description = 'Current scores:';
-
-    //sort teams based on highest score
-    teams.sort((a, b) => b.getTotalScore() - a.getTotalScore());
-    for (let i = 0; i < teams.length; i++) {
-        fields.push(
-            {name: 'Place #' + (i + 1), value: 'Team name', inline: true},
-            {name: '\u200b', value: '\u200b', inline: true},
-            {name: 'Total score: ', value: teams[i].getTotalScore() + ' points!', inline: true},
-        )
-    }
-
-    if (round > game.getTotalrounds()) {
-        title = 'Game over! Team' + ' team name ' + 'has won!';
-        description = 'Total scores:'
-    }
-
-    return new MessageEmbed()
-        .setColor('#0099ff')
-        .setTitle(title)
-        .setDescription(description)
-        .setFields(fields);
-}
-
-function showResults(msg: Message, results: any, round: number) {
-    const embed = msg.embeds[0];
-    let fields = [];
-    for (let i = 0; i < results.answers.length; i++) {
-        if (!results.answers[i] || results.answers[i].length === 0) results.answers[i] = 'Nothing';
-
-        fields.push(
-            {name: 'Team ' + (i + 1) + ' answered: ', value: results.answers[i], inline: true},
-            {name: '\u200b', value: '\u200b', inline: true},
-            {name: 'They scored: ', value: results.score[i] + ' points!', inline: true},
-        );
-    }
-
-    embed
-        .setTitle('Round ' + round + ' results:')
-        .setDescription('')
-        .setFields(fields);
-
-    msg.edit({embeds: [embed]});
 }
