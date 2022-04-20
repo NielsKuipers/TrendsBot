@@ -8,6 +8,7 @@ import {ITopic} from "../database/models/topic";
 import {Timer} from "./ui/timer";
 import {Messages} from "./ui/messages";
 import {GameState} from "./game/gameStates";
+import {GameManager} from "./game/gameManager";
 
 require('./deploy-commands');
 
@@ -22,7 +23,7 @@ for (const file of commandFiles) {
     client.commands.set(command.data.name, command);
 }
 
-const answerTime = 3000;
+const answerTime = 5000;
 const breakTime = 3000;
 let game: Game;
 
@@ -41,38 +42,11 @@ client.on('interactionCreate', async interaction => {
         switch (command.data.name) {
             case 'playtrends':
                 const res = await setTimeout(command.timer, command.players);
-                game = new Game();
+                game = GameManager.setGameInstance(new Game());
                 game.setState(GameState.JOINING);
                 await game.loadTopics();
                 await joinGame(res);
                 runGame(interaction.channel);
-                break;
-            case 'answer':
-                if (game == null || game.getState() !== GameState.IN_ROUND) {
-                    interaction.reply({content: 'The game is not currently in a round.', ephemeral: true})
-                    return;
-                } else if (!game.hasPlayer(interaction.user.id)) {
-                    interaction.reply({content: 'You are not participating in this game.', ephemeral: true})
-                    return;
-                }
-
-
-                const answer: string = interaction.options.getString('answer').toLowerCase();
-                let strippedAnswer: string = answer.replace(game.getCurrentWord().toLowerCase(), "");
-
-                if (!strippedAnswer || strippedAnswer.trim().length === 0) {
-                    interaction.reply({
-                        content: 'Your answer must pair something with ' + game.getCurrentWord(),
-                        ephemeral: true
-                    })
-                } else if (answer.includes(game.getCurrentWord().toLowerCase())) {
-                    confirmAnswer(interaction.options.getString('answer'), interaction.user.id);
-                    interaction.reply({content: 'Answer received!', ephemeral: true})
-                } else
-                    interaction.reply({
-                        content: 'Your answer must include the word ' + game.getCurrentWord(),
-                        ephemeral: true
-                    })
                 break;
         }
     }
@@ -128,14 +102,6 @@ async function runGame(channel: TextChannel) {
     }
 }
 
-async function setTeamName() {
-
-}
-
 async function joinGame(players: Team[]) {
     await game.joinGame(players);
-}
-
-function confirmAnswer(answer: string, player: string) {
-    game.answer(answer, player);
 }
