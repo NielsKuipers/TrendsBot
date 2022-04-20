@@ -1,13 +1,7 @@
 export class Team {
     private players: string[] = [];
     private totalScore: number = 0;
-    private answered: string[];
     private currentAnswer: string = '';
-    private winStatus: boolean = false;
-
-    addPlayers(players: string[]) {
-        this.players = players;
-    }
 
     getPlayers(): string[] {
         return this.players;
@@ -18,7 +12,11 @@ export class Team {
     }
 
     removePlayer(player: string) {
-        this.players.filter(p => p !== player);
+        const index = this.players.indexOf(player, 0);
+
+        if(index > -1){
+            this.players.splice(index, 1);
+        }
     }
 
     addScore(score: number) {
@@ -37,19 +35,7 @@ export class Team {
         return this.currentAnswer;
     }
 
-    getAnswered() {
-        return this.answered;
-    }
-
     hasPlayer(player: string): boolean {
         return this.players.includes(player);
-    }
-
-    setWon() {
-        this.winStatus = true;
-    }
-
-    getWinStatus() {
-        return this.winStatus;
     }
 }
