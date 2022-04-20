@@ -7,6 +7,7 @@ import {Team} from "./game/team";
 import {ITopic} from "../database/models/topic";
 import {Timer} from "./ui/timer";
 import {Messages} from "./ui/messages";
+import {GameState} from "./game/gameStates";
 
 require('./deploy-commands');
 
@@ -23,7 +24,6 @@ for (const file of commandFiles) {
 
 const answerTime = 3000;
 const breakTime = 3000;
-let playing = false;
 let game: Game;
 
 client.on('interactionCreate', async interaction => {
@@ -42,12 +42,21 @@ client.on('interactionCreate', async interaction => {
             case 'playtrends':
                 const res = await setTimeout(command.timer, command.players);
                 game = new Game();
+                game.setState(GameState.JOINING);
                 await game.loadTopics();
                 await joinGame(res);
-                playing = true;
                 runGame(interaction.channel);
                 break;
             case 'answer':
+                if (game == null || game.getState() !== GameState.IN_ROUND) {
+                    interaction.reply({content: 'The game is not currently in a round.', ephemeral: true})
+                    return;
+                } else if (!game.hasPlayer(interaction.user.id)) {
+                    interaction.reply({content: 'You are not participating in this game.', ephemeral: true})
+                    return;
+                }
+
+
                 const answer: string = interaction.options.getString('answer').toLowerCase();
                 let strippedAnswer: string = answer.replace(game.getCurrentWord().toLowerCase(), "");
 
@@ -76,7 +85,8 @@ async function runGame(channel: TextChannel) {
     let round = 1;
     const totalRounds = game.getTotalrounds();
 
-    while (playing) {
+    while (game.getState() !== GameState.NOT_PLAYING) {
+        game.setState(GameState.IN_ROUND);
         const word = game.getCurrentWord();
 
         //create embed with current round and chosen word
@@ -106,9 +116,10 @@ async function runGame(channel: TextChannel) {
                     await dbManager.handleUser(player, won, teamScore);
             }
 
-            playing = false;
+            game.setState(GameState.NOT_PLAYING);
         } else {
             //show total game results and countdown for next round
+            game.setState(GameState.BETWEEN_ROUND);
             let breakMsg = await Messages.createResultEmbed(round, game.getTeams());
             let curRoundResults = await channel.send({embeds: [breakMsg]})
             Timer.setCountdown(breakMsg, curRoundResults, breakTime, 'Round ' + round + ' starts in ');

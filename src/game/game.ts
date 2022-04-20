@@ -2,6 +2,7 @@ import {Trends} from "./trends";
 import {Team} from "./team";
 import Topic, {ITopic} from "../../database/models/topic";
 import {ITerm} from "../../database/models/term";
+import {GameState} from "./gameStates";
 
 require('../../database/models/term');
 
@@ -11,6 +12,7 @@ export class Game {
     private currentTopic: ITopic;
     private words: ITerm[];
     private currentWord: string;
+    private currentState: GameState;
 
     constructor() {
         this.teams = [];
@@ -84,5 +86,22 @@ export class Game {
         this.currentTopic = await this.topics[Math.floor(Math.random() * this.topics.length)];
         this.words = this.currentTopic.terms;
         this.chooseWord();
+    }
+
+    getState() {
+        return this.currentState;
+    }
+
+    setState(state: GameState) {
+        this.currentState = state;
+    }
+
+    hasPlayer(playerId) {
+        for(let team of this.teams) {
+            if(team.hasPlayer(playerId))
+                return true;
+        }
+
+        return false;
     }
 }
