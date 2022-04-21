@@ -15,7 +15,7 @@ module.exports = {
                 .addChoice('2', 2)
                 .addChoice('3', 3)
                 .addChoice('4', 4)),
-    timer: 5000,
+    timer: 10000,
     players: [],
     async execute(interaction: any) {
         //check if a game is already running

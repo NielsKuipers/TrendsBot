@@ -20,9 +20,9 @@ export class Game {
     private currentState: GameState;
 
     //timers
-    private answerTime = 5000;
-    private breakTime = 3000;
-    private teamNameTime = 5000;
+    private answerTime = 10000;
+    private breakTime = 5000;
+    private teamNameTime = 10000;
 
     private dbManager = GameManager.getDBInstance();
 
@@ -112,6 +112,7 @@ export class Game {
 
         const score = await Trends.getDifference([...answers], this.teams.length);
         const result = {answers: answers, score: score};
+
 
         for (let i = 0; i < this.teams.length; i++) {
             this.teams[i].addScore(score[i]);

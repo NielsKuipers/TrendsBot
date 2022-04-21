@@ -28,9 +28,8 @@ export abstract class Trends {
         const {default: {averages}} = JSON.parse(result);
 
         //if your team answered give them the points earned with it
+        let j = 0;
         for (let i = 0; i < teams; i++) {
-            let j = 0;
-
             if (scores[i] !== 0) {
                 scores[i] = averages[j];
                 j++;
