@@ -2,6 +2,7 @@ export class Team {
     private players: string[] = [];
     private totalScore: number = 0;
     private currentAnswer: string = '';
+    private teamName;
 
     getPlayers(): string[] {
         return this.players;
@@ -37,5 +38,13 @@ export class Team {
 
     hasPlayer(player: string): boolean {
         return this.players.includes(player);
+    }
+
+    setName(name: string) {
+        this.teamName = name;
+    }
+
+    getName() {
+        return this.teamName;
     }
 }

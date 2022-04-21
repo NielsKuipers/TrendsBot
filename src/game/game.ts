@@ -18,8 +18,12 @@ export class Game {
     private words: ITerm[];
     private currentWord: string;
     private currentState: GameState;
+
+    //timers
     private answerTime = 5000;
     private breakTime = 3000;
+    private teamNameTime = 5000;
+
     private dbManager = GameManager.getDBInstance();
 
     constructor() {
@@ -27,8 +31,21 @@ export class Game {
     }
 
     async startGame(players: Team[], interaction){
-        await this.loadTopics();
         this.teams = players;
+        this.setState(GameState.NAMING_TEAMS);
+
+        //create message for naming your team
+        let teamNameMsg = Messages.createTeamNameEmbed();
+        let msg = await interaction.channel.send({embeds: [teamNameMsg]});
+        Timer.setCountdown(teamNameMsg, msg, this.teamNameTime, 'Team naming ends in ');
+        await setTimeout(this.teamNameTime + 1000);
+
+        for (let i = 0; i < players.length; i++) {
+           if(players[i].getName() == null)
+               players[i].setName('Team ' + (i + 1));
+        }
+
+        await this.loadTopics();
         this.runGame(interaction.channel);
     }
 
@@ -149,5 +166,14 @@ export class Game {
         }
 
         return false;
+    }
+
+    setTeamName(name: string, userId: string) {
+        const teamNumber: number = this.teams.findIndex(i => i.hasPlayer(userId));
+        this.teams[teamNumber].setName(name);
+    }
+
+    getTeams() {
+        return this.teams;
     }
 }
