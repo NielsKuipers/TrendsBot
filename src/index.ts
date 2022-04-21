@@ -1,13 +1,5 @@
 import fs from 'fs';
-import {Client, Collection, Intents, TextChannel} from 'discord.js'
-import {Game} from './game/game'
-import {setTimeout} from 'timers/promises'
-import {DBmanager} from "../database/dbmanager";
-import {Team} from "./game/team";
-import {ITopic} from "../database/models/topic";
-import {Timer} from "./ui/timer";
-import {Messages} from "./ui/messages";
-import {GameState} from "./game/gameStates";
+import {Client, Collection, Intents} from 'discord.js'
 import {GameManager} from "./game/gameManager";
 
 require('./deploy-commands');

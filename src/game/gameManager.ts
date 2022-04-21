@@ -1,9 +1,6 @@
 import {Game} from "./game";
 import {DBmanager} from "../../database/dbmanager";
 import {Team} from "./team";
-import {setTimeout} from "timers/promises";
-import {GameState} from "./gameStates";
-import {Interaction} from "discord.js";
 
 export class GameManager {
     private static gameInstance: Game = null;
@@ -25,8 +22,11 @@ export class GameManager {
         this.dbManager = new DBmanager();
     }
 
-    static startGame(players: Team[], interaction) {
+    static createGame() {
         this.setGameInstance(new Game());
+    }
+
+    static startGame(players: Team[], interaction) {
         this.getGameInstance().startGame(players, interaction);
     }
 }

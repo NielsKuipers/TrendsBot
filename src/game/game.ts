@@ -3,7 +3,7 @@ import {Team} from "./team";
 import Topic, {ITopic} from "../../database/models/topic";
 import {ITerm} from "../../database/models/term";
 import {GameState} from "./gameStates";
-import {Interaction, TextChannel} from "discord.js";
+import {TextChannel} from "discord.js";
 import {Messages} from "../ui/messages";
 import {Timer} from "../ui/timer";
 import {setTimeout} from "timers/promises";
@@ -28,14 +28,14 @@ export class Game {
 
     async startGame(players: Team[], interaction){
         await this.loadTopics();
-        await this.joinGame(players);
+        this.teams = players;
         this.runGame(interaction.channel);
     }
 
     async runGame(channel: TextChannel) {
-        const topic: ITopic = await this.getTopic();
+        const topic: ITopic = this.currentTopic;
         let round = 1;
-        const totalRounds = this.getTotalrounds();
+        const totalRounds = this.currentTopic.terms.length + 1;
 
         while (this.getState() !== GameState.NOT_PLAYING) {
             this.setState(GameState.IN_ROUND);
@@ -54,10 +54,10 @@ export class Game {
 
             round++;
             if (round > totalRounds) {
-                let finalResults = await Messages.createResultEmbed(round, this.getTeams(), true);
+                let finalResults = await Messages.createResultEmbed(round, this.teams, true);
                 await channel.send({embeds: [finalResults]});
 
-                const teams = this.getTeams();
+                const teams = this.teams;
                 const highScore = this.getHighestScore();
 
                 for (let i = 0; i < teams.length; i++) {
@@ -72,7 +72,7 @@ export class Game {
             } else {
                 //show total game results and countdown for next round
                 this.setState(GameState.BETWEEN_ROUND);
-                let breakMsg = await Messages.createResultEmbed(round, this.getTeams());
+                let breakMsg = await Messages.createResultEmbed(round, this.teams);
                 let curRoundResults = await channel.send({embeds: [breakMsg]})
                 Timer.setCountdown(breakMsg, curRoundResults, this.breakTime, 'Round ' + round + ' starts in ');
                 await setTimeout(this.breakTime + 1000);
@@ -116,18 +116,6 @@ export class Game {
         return this.currentWord;
     }
 
-    joinGame(players: Team[]): void {
-        this.teams = players;
-    }
-
-    getTopic(): ITopic {
-        return this.currentTopic;
-    }
-
-    getTeams(): Team[] {
-        return this.teams;
-    }
-
     getHighestScore(): number {
         let result: number = 0;
 
@@ -137,10 +125,6 @@ export class Game {
         }
 
         return result;
-    }
-
-    getTotalrounds(): number {
-        return this.currentTopic.terms.length + 1;
     }
 
     async loadTopics() {

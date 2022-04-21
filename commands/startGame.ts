@@ -25,6 +25,9 @@ module.exports = {
             return;
         }
 
+        //create a new game instance
+        GameManager.createGame();
+
         //clear player array before adding players
         this.players.length = 0;
 
