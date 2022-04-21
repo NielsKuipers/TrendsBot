@@ -71,7 +71,7 @@ export class Messages {
     static createTeamNameEmbed() {
         return new MessageEmbed()
             .setColor('#0099ff')
-            .setTitle("Team naming ends in: 10 seconds")
+            .setTitle("Team naming ends in:")
             .setDescription('Use the /setteamname comman to change the name.')
     }
 }
