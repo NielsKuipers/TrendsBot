@@ -23,6 +23,12 @@ module.exports = {
 
         let name = interaction.options.getString('teamname');
 
+        if(name.length > 25)
+        {
+            interaction.reply({content: 'Please keep the name to max 25 characters.', ephemeral: true})
+            return;
+        }
+
         this.game.setTeamName(name, interaction.user.id);
         interaction.reply({content: 'Name changed to: ' + name + '!', ephemeral: true})
     }
