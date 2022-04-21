@@ -1,7 +1,10 @@
 import fs from 'fs';
 import {Client, Collection, Intents} from 'discord.js'
 import {GameManager} from "./game/gameManager";
+import dotenv from 'dotenv';
+dotenv.config();
 
+GameManager.connectToDb();
 require('./deploy-commands');
 
 const client: any = new Client({intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES]});
@@ -14,7 +17,6 @@ for (const file of commandFiles) {
     client.commands.set(command.data.name, command);
 }
 
-GameManager.connectToDb();
 
 client.on('interactionCreate', async interaction => {
     if (interaction.isCommand()) {

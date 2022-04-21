@@ -20,9 +20,9 @@ export class Game {
     private currentState: GameState;
 
     //timers
-    private answerTime = 10000;
+    private answerTime = 20000;
     private breakTime = 5000;
-    private teamNameTime = 10000;
+    private teamNameTime = 15000;
 
     private dbManager = GameManager.getDBInstance();
 

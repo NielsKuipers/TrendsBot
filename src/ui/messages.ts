@@ -18,7 +18,7 @@ export class Messages {
 
     static createResultEmbed(round: number, teams: Team[], gameOver: boolean = false) {
         let fields = [];
-        let title = 'Round ' + (round) + ' starts in: 10';
+        let title = 'Round ' + (round) + ' starts in: 5';
         let description = 'Current scores:';
 
         //sort teams based on highest score
