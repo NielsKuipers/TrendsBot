@@ -1,11 +1,8 @@
 import {SlashCommandBuilder} from "@discordjs/builders";
-import {
-    Interaction,
-    MessageActionRow,
-    MessageButton,
-    MessageEmbed, MessageSelectMenu
-} from "discord.js";
+import {Interaction, MessageActionRow, MessageButton, MessageEmbed, MessageSelectMenu} from "discord.js";
 import {Team} from '../src/game/team';
+import {GameManager} from "../src/game/gameManager";
+import {GameState} from "../src/game/gameStates";
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -21,6 +18,13 @@ module.exports = {
     timer: 10000,
     players: [],
     async execute(interaction: any) {
+        //check if a game is already running
+        if(GameManager.getGameInstance() !== null && GameManager.getGameInstance().getState() !== GameState.NOT_PLAYING)
+        {
+            interaction.reply({content: 'Another game is already running, please wait till it finishes.', ephemeral: true})
+            return;
+        }
+
         //clear player array before adding players
         this.players.length = 0;
 
@@ -109,5 +113,9 @@ module.exports = {
                 return;
             }
         });
+
+        collector.on('end', _ => {
+            GameManager.startGame(this.players, interaction);
+        })
     }
 }

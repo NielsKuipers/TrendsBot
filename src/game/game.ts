@@ -3,6 +3,11 @@ import {Team} from "./team";
 import Topic, {ITopic} from "../../database/models/topic";
 import {ITerm} from "../../database/models/term";
 import {GameState} from "./gameStates";
+import {Interaction, TextChannel} from "discord.js";
+import {Messages} from "../ui/messages";
+import {Timer} from "../ui/timer";
+import {setTimeout} from "timers/promises";
+import {GameManager} from "./gameManager";
 
 require('../../database/models/term');
 
@@ -13,9 +18,66 @@ export class Game {
     private words: ITerm[];
     private currentWord: string;
     private currentState: GameState;
+    private answerTime = 5000;
+    private breakTime = 3000;
+    private dbManager = GameManager.getDBInstance();
 
     constructor() {
         this.teams = [];
+    }
+
+    async startGame(players: Team[], interaction){
+        await this.loadTopics();
+        await this.joinGame(players);
+        this.runGame(interaction.channel);
+    }
+
+    async runGame(channel: TextChannel) {
+        const topic: ITopic = await this.getTopic();
+        let round = 1;
+        const totalRounds = this.getTotalrounds();
+
+        while (this.getState() !== GameState.NOT_PLAYING) {
+            this.setState(GameState.IN_ROUND);
+            const word = this.getCurrentWord();
+
+            //create embed with current round and chosen word
+            let msg = Messages.createRoundEmbed(round, word, topic.name);
+            let curRound = await channel.send({embeds: [msg]})
+            Timer.setCountdown(msg, curRound, this.answerTime, 'Round ' + round + ' ends in ');
+            await setTimeout(this.answerTime + 1000);
+
+            //show round results
+            const results = await this.endRound();
+            Messages.showResults(curRound, results, round);
+            await setTimeout(5000);
+
+            round++;
+            if (round > totalRounds) {
+                let finalResults = await Messages.createResultEmbed(round, this.getTeams(), true);
+                await channel.send({embeds: [finalResults]});
+
+                const teams = this.getTeams();
+                const highScore = this.getHighestScore();
+
+                for (let i = 0; i < teams.length; i++) {
+                    const teamScore = teams[i].getTotalScore();
+                    const won = highScore === teamScore;
+
+                    for (let player of teams[i].getPlayers())
+                        await this.dbManager.handleUser(player, won, teamScore);
+                }
+
+                this.setState(GameState.NOT_PLAYING);
+            } else {
+                //show total game results and countdown for next round
+                this.setState(GameState.BETWEEN_ROUND);
+                let breakMsg = await Messages.createResultEmbed(round, this.getTeams());
+                let curRoundResults = await channel.send({embeds: [breakMsg]})
+                Timer.setCountdown(breakMsg, curRoundResults, this.breakTime, 'Round ' + round + ' starts in ');
+                await setTimeout(this.breakTime + 1000);
+            }
+        }
     }
 
     answer(answer: string, player: string): void {
